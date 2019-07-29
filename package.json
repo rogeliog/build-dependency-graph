@@ -1,0 +1,12 @@
+{
+  "name": "build-dependency-graph",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "glob": "^7.1.4",
+    "jest-config": "^24.8.0",
+    "jest-resolve-dependencies": "^24.8.0",
+    "jest-runtime": "^24.8.0"
+  }
+}
