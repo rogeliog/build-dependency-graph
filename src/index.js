@@ -3,9 +3,19 @@ const { readConfig } = require("jest-config");
 const Runtime = require("jest-runtime");
 const DependencyResolver = require("jest-resolve-dependencies");
 const glob = require("glob");
+const fs = require("fs");
 
 async function getDependencyResolver(configPath) {
   const { projectConfig: config } = readConfig({}, configPath);
+  const cacheDirExists = await new Promise(res =>
+    fs.exists(config.cacheDirectory, res)
+  );
+
+  if (!cacheDirExists) {
+    await new Promise(res =>
+      fs.mkdir(config.cacheDirectory, { recursive: true }, res)
+    );
+  }
 
   const hasteMap = await Runtime.createHasteMap(config, {
     console: { log() {}, error() {}, warn() {} }, // fakeConsole,
@@ -23,11 +33,11 @@ async function buildDependencyGraph(filesGlob, configPath) {
   const reverseDependencyResolver = await getDependencyResolver(configPath);
 
   return targetFiles.reduce((acc, file) => {
-    const dependants = reverseDependencyResolver
+    const dependsOn = reverseDependencyResolver
       .resolve(file)
-      .map(f => f.replace(`${__dirname}/`, ""));
+      .map(f => f.replace(`${process.cwd()}/`, ""));
 
-    acc[file] = dependants;
+    acc[file] = { dependsOn };
     return acc;
   }, {});
 }
