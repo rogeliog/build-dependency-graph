@@ -1,12 +1,22 @@
 {
   "name": "build-dependency-graph",
   "version": "0.1.2",
-  "main": "src/index.js",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {
     "glob": "^7.1.4",
     "jest-config": "^24.8.0",
     "jest-resolve-dependencies": "^24.8.0",
     "jest-runtime": "^24.8.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node18-strictest": "^1.0.0",
+    "@types/glob": "^7.0.0",
+    "@types/node": "^18.11.15",
+    "typescript": "^4.9.4"
   }
 }
