@@ -1,15 +1,15 @@
 import type { Config } from '@jest/types';
 import glob from 'glob';
 import { readConfig } from 'jest-config';
-import DependencyResolver from 'jest-resolve-dependencies';
+import { DependencyResolver } from 'jest-resolve-dependencies';
 import Runtime from 'jest-runtime';
 import type { SnapshotResolver } from 'jest-snapshot';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 async function getDependencyResolver(configPath: string): Promise<DependencyResolver> {
-  const { projectConfig: config } = readConfig({} as Config.Argv, configPath);
+  const { projectConfig: config } = await readConfig({} as Config.Argv, configPath);
   const cacheDirExists = fs.existsSync(config.cacheDirectory);
 
   if (!cacheDirExists) {
@@ -21,15 +21,15 @@ async function getDependencyResolver(configPath: string): Promise<DependencyReso
     maxWorkers: os.cpus().length - 1,
     resetCache: false,
     watchman: false
-  }).build();
+  });
 
-  const { hasteFS, moduleMap } = hasteMap;
+  const { hasteFS, moduleMap } = await hasteMap.build();
   const resolver = Runtime.createResolver(config, moduleMap);
 
   return new DependencyResolver(resolver, hasteFS, undefined as any as SnapshotResolver);
 }
 
-async function buildDependencyGraph(
+export async function buildDependencyGraph(
   filesGlob: string,
   configPath: string
 ): Promise<Record<string, { dependsOn: string[] }>> {
@@ -37,12 +37,10 @@ async function buildDependencyGraph(
   const reverseDependencyResolver = await getDependencyResolver(configPath);
 
   return targetFiles.reduce((acc, file) => {
-    acc[file] = {
+    acc[path.relative(process.cwd(), file)] = {
       dependsOn: reverseDependencyResolver.resolve(file).map((f) => path.relative(process.cwd(), f))
     };
 
     return acc;
   }, {} as Record<string, { dependsOn: string[] }>);
 }
-
-export = buildDependencyGraph;
